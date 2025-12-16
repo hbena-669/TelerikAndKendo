@@ -10,7 +10,7 @@ namespace TelerikAndKendo.Controllers
 {
     public class ProductsController : Controller
     {
-        // Simule une base de données (à remplacer par Entity Framework)
+        // Simule une base de données (à remplacer par Entity Framework)    
         private static List<Product> _products = new List<Product>
         {
             new Product { Id = 1, Name = "Ordinateur Portable", Price = 999.99m, Quantity = 10, Category = "Électronique", InStock = true, CreatedDate = DateTime.Now.AddDays(-30) },
@@ -122,6 +122,21 @@ namespace TelerikAndKendo.Controllers
             }
         }
 
+        [HttpGet]
+        public JsonResult GetCategoryStats()
+        {
+            var stats = _products
+                .GroupBy(p => p.Category)
+                .Select(g => new
+                {
+                    category = g.Key,
+                    count = g.Count()
+                })
+                .ToList();
+
+            return Json(stats, JsonRequestBehavior.AllowGet);
+        }
+
         // Classes pour le filtrage et tri (format Kendo UI)
         public class GridSort
         {
@@ -166,13 +181,15 @@ namespace TelerikAndKendo.Controllers
 
         private IQueryable<Product> ApplySorting(IQueryable<Product> query, List<GridSort> sort)
         {
-            var firstSort = sort.First();
-            if (firstSort.dir == "asc")
-                query = query.OrderBy(p => p.Name);
-            else
-                query = query.OrderByDescending(p => p.Name);
+            var s = sort.First();
+            var prop = typeof(Product).GetProperty(s.field);
 
-            return query;
+            if (prop == null)
+                return query;
+
+            return s.dir == "asc"
+                ? query.OrderBy(x => prop.GetValue(x, null))
+                : query.OrderByDescending(x => prop.GetValue(x, null));
         }
     }
 }

@@ -1,0 +1,141 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2020.1.114/styles/kendo.default-v2.min.css" />
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="https://kendo.cdn.telerik.com/2020.1.114/js/angular.min.js"></script>
+    <script type="text/javascript" src="https://kendo.cdn.telerik.com/2020.1.114/js/kendo.all.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#grid").kendoGrid({
+                dataSource: {
+                    transport: {
+                        read: { url: "/Customer/GetCustomers" },
+                    },
+                    schema: {
+                        model: {
+                            fields: {
+                                City: { type: "string" },
+                                Title: { type: "string" },
+                                BirthDate: { type: "date" }
+                            }
+                        }
+                    },
+                    pageSize: 15
+                },
+                height: 550,
+                scrollable: true,
+                filterable: {
+                    extra: false,
+                    operators: {
+                        string: {
+                            startswith: "Starts with",
+                            eq: "Is equal to",
+                            neq: "Is not equal to"
+                        }
+                    }
+                },
+                pageable: true,
+                columns: [
+                    {
+                        title: "Name",
+                        width: 160,
+                        filterable: false,
+                        template: "#=FirstName# #=LastName#"
+                    },
+                    {
+                        field: "City",
+                        width: 130,
+                        //filterable: {
+                        //    ui: cityFilter
+                        //}
+                    },
+                    {
+                        field: "ShipName",
+                        width: 120,
+                        filterable: {
+                            ui: shipNameFilter
+                        }
+                    },
+                    {
+                        title: "Ship City",
+                        width: 160,
+                        filterable: false,
+                        template: "#=ShipCity# #=ShipCity#"
+                    },
+                ]
+            });
+        });
+
+        function shipNameFilter(element) {
+            element.kendoDropDownList({
+                dataTextField: "ShipName",
+                dataValueField: "ShipName",
+                filter: "contains",
+                virtual: {
+                    itemHeight: 26,
+                    valueMapper: function (options) {
+                        $.ajax({
+                            url: "@Url.Action("ValueMapper", "Customer")",
+                            type: "GET",
+                            dataType: "json",
+                            data: convertValues(options.value),
+                            success: function (data) {
+                                options.success(data);
+                            }
+                        })
+                    }
+                },
+                height: 520,
+                dataSource: {
+                    transport: {
+                        read: "/Customer/GetShipNameList",
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        type: 'GET',
+                    },
+                    schema: {
+                        data: 'data',
+                        total: 'total',
+                        fields: [
+                            { field: 'ShipName', type: 'string' },
+                            { field: 'OrderID', type: 'number' },
+                        ]
+                    },
+                    pageSize: 10,
+                    serverPaging: true,
+                    serverFiltering: true
+                }
+            });
+        }
+
+        function convertValues(value) {
+
+            var data = {};
+
+            value = $.isArray(value) ? value : [value];
+
+            for (var idx = 0; idx < value.length; idx++) {
+                data["values[" + idx + "]"] = value[idx];
+            }
+
+            return data;
+        }
+    </script>
+</head>
+<body>
+    <div id="example">
+        <div id="grid"></div>
+    </div>
+</body>
+</html>
+

@@ -109,6 +109,8 @@
             },
             pageSize: 5,
             serverPaging: true,
+            serverSorting: true,
+            serverFiltering: true,
             change: function() {
                 updateDashboardStats(this.data());
             }
@@ -122,6 +124,8 @@
                 refresh: true,
                 pageSizes: [5, 10, 20]
             },
+            sortable: true,
+            filterable: true,
             columns: [
                 { field: "Name", title: "Nom" },
                 { field: "Category", title: "Catégorie" },
@@ -135,7 +139,7 @@
             ],
             toolbar: [
                 {
-                    template: '<a href="@Url.Action("Products", "Products")" class="k-button k-button-icontext">' +
+                    template: '<a href="@Url.Action("Index", "Products")" class="k-button k-button-icontext">' +
                              '<span class="k-icon k-i-grid"></span>Voir tous les produits</a>'
                 }
             ]
